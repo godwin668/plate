@@ -1,6 +1,8 @@
 package com.gaocy.plate.util;
 
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +13,8 @@ import java.net.URL;
  * Created by godwin on 2017-10-12.
  */
 public class DataUtil {
+
+    private static Logger logger = LoggerFactory.getLogger(DataUtil.class);
 
     private static String DATA_DIR = ConfUtil.getProperty("data.dir");
 
@@ -98,6 +102,23 @@ public class DataUtil {
         localPath = localPath.replaceAll("\\\\", "/");
         String relativePath = localPath.substring(localPath.indexOf(DATA_DIR) + DATA_DIR.length() + (DATA_DIR.endsWith("/") ? 0 : 1));
         return relativePath.replaceFirst("__", "://");
+    }
+
+    public static File downloadUrl(String url) {
+        String localPath = getLocalPathByUrl(url);
+        if (!new File(localPath).isFile()) {
+            try {
+                logger.debug("【DATAUTIL】↓ 下载文件：[{}]->[{}]", url, localPath);
+                FileUtils.copyURLToFile(new URL(url), new File(localPath));
+            } catch (Exception e) {
+                logger.warn("【DATAUTIL】× 下载文件出错：[{}]->[{}]", url, localPath);
+                e.printStackTrace();
+            }
+            if (!new File(localPath).isFile()) {
+                logger.info("【DATAUTIL】× 未找到原始文件: " + localPath);
+            }
+        }
+        return new File(localPath);
     }
 
     public static void main(String[] args) {
